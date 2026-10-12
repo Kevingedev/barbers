@@ -1,0 +1,482 @@
+/* ---------------------------------------------------------------------------
+   Scroll world: el paseo por la barbería.
+
+   El escenario es `sticky` a pantalla completa y las paradas van encima, cada
+   una de dos pantallas de alto. El scroll natural mueve el paseo; el motor
+   (src/features/world/lib/world.ts) solo lee la posición y escribe el
+   `currentTime` del clip del tramo y la opacidad de los pósters.
+
+   El texto de cada parada solo se oculta cuando el motor ha arrancado
+   (`.is-world`): si el JavaScript no carga, la página se lee igual.
+--------------------------------------------------------------------------- */
+
+.world {
+  position: relative;
+}
+
+.world-stage {
+  position: sticky;
+  top: 0;
+  /* La altura la fija `--world-vh`, que el motor mide UNA vez al montar. Con
+     `100dvh` o `100svh` el navegador recalcula la altura en cada scroll (la
+     barra de direcciones del móvil cambia el viewport) y eso obliga a rehacer
+     el layout de todo el documento mientras el motor escribe estilos. */
+  height: calc(var(--world-vh, 100vh) * 1px);
+  overflow: hidden;
+  background-color: var(--color-background);
+  --focus-x: 50%;
+}
+
+.world-media,
+.world-clips,
+.world-frame {
+  position: absolute;
+  inset: 0;
+}
+
+/* Sin will-change aquí: con dos capas a pantalla completa reserva memoria de GPU
+   para siempre y compite con el vídeo, que es lo que hay que mantener fluid.
+   `transform` y `opacity` ya van por la vía rápida del compositor. */
+.world-frame {
+  opacity: 0;
+}
+
+.world-frame__img {
+  object-fit: cover;
+  object-position: var(--focus-x) 50%;
+}
+
+/* Los clips arrancan invisibles y solo se ve el del tramo actual: el cambio es
+   instantáneo porque los clips comparten fotograma en las costuras. */
+.world-clips {
+  opacity: 0;
+  transition: opacity 1200ms var(--ease-fluid);
+}
+
+.world-stage[data-mode="video"] .world-clips {
+  opacity: 1;
+}
+
+.world-clip {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--focus-x) 50%;
+  visibility: hidden;
+}
+
+.world-clip.is-shown {
+  visibility: visible;
+}
+
+/* ---------------------------------------------------------------------------
+   Velos: sin ellos el texto no se lee sobre el vídeo.
+--------------------------------------------------------------------------- */
+.world-veil {
+  position: absolute;
+  pointer-events: none;
+}
+
+.world-veil--top {
+  inset: 0 0 auto;
+  height: 160px;
+  background: linear-gradient(to bottom, rgb(15 15 17 / 60%), rgb(15 15 17 / 0%));
+}
+
+.world-veil--stage {
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--color-background) 0%,
+    rgb(15 15 17 / 92%) 15%,
+    rgb(15 15 17 / 50%) 50%,
+    rgb(15 15 17 / 0%) 80%
+  );
+}
+
+.world-veil--bottom {
+  inset: auto 0 0;
+  height: 50%;
+  background: linear-gradient(to top, rgb(15 15 17 / 80%), rgb(15 15 17 / 0%));
+}
+
+@media (min-width: 960px) {
+  .world-veil--stage {
+    background: linear-gradient(
+      to right,
+      rgb(15 15 17 / 90%) 0%,
+      rgb(15 15 17 / 40%) 35%,
+      rgb(15 15 17 / 0%) 65%
+    );
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Raíl de paradas
+--------------------------------------------------------------------------- */
+.world-rail {
+  display: none;
+}
+
+.world-rail__list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.world-rail__line {
+  position: absolute;
+  top: 12px;
+  right: 4px;
+  bottom: 12px;
+  width: 1px;
+  background-color: rgb(237 237 237 / 20%);
+}
+
+.world-rail__fill {
+  position: absolute;
+  inset: 0;
+  transform: scaleY(0);
+  transform-origin: top;
+  background-color: var(--color-accent);
+}
+
+.world-rail__link {
+  display: flex;
+  height: 24px;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Sin backdrop-filter: desenfocar el fondo exige repintarlo, y sobre un vídeo
+   que cambia en cada frame eso se nota como tirones. El velo del escenario ya
+   oscurece lo suficiente por detrás. */
+.world-rail__label {
+  border-radius: 999px;
+  padding: 4px 12px;
+  background-color: rgb(15 15 17 / 82%);
+  color: var(--color-foreground);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 1px rgb(237 237 237 / 10%);
+  opacity: 0;
+  transform: translateX(8px);
+  transition:
+    opacity 700ms var(--ease-fluid),
+    transform 700ms var(--ease-fluid);
+}
+
+.world-rail__dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background-color: rgb(237 237 237 / 50%);
+  transition:
+    background-color 700ms var(--ease-fluid),
+    transform 700ms var(--ease-fluid);
+}
+
+.world-rail__link:hover .world-rail__label,
+.world-rail__link:focus-visible .world-rail__label,
+.world-rail__link[aria-current="true"] .world-rail__label {
+  opacity: 1;
+  transform: none;
+}
+
+.world-rail__link:hover .world-rail__dot {
+  background-color: var(--color-foreground);
+}
+
+.world-rail__link[aria-current="true"] .world-rail__dot {
+  transform: scale(1.5);
+  background-color: var(--color-accent);
+}
+
+@media (min-width: 1024px) {
+  .world-rail {
+    position: absolute;
+    top: 50%;
+    right: 24px;
+    display: block;
+    transform: translateY(-50%);
+  }
+}
+
+@media (min-width: 1280px) {
+  .world-rail {
+    right: 32px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Indicador de scroll
+--------------------------------------------------------------------------- */
+.world-hint {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .world-hint {
+    position: absolute;
+    right: 32px;
+    bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgb(237 237 237 / 70%);
+    font-size: var(--text-xs);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+}
+
+.world-hint__line {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 32px;
+  overflow: hidden;
+  background-color: rgb(237 237 237 / 20%);
+}
+
+.world-hint__line::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-foreground);
+  animation: world-hint 2400ms var(--ease-fluid) infinite;
+}
+
+@keyframes world-hint {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Paradas
+--------------------------------------------------------------------------- */
+.world-stops {
+  position: relative;
+  z-index: 10;
+  margin-top: calc(var(--world-vh, 100vh) * -1px);
+}
+
+.world-stop {
+  display: flex;
+  /* Mismo motivo que el escenario: alturas fijas en px, medidas al montar, en
+     vez de unidades de viewport que obligan a recalcular el layout. */
+  min-height: calc(var(--world-vh, 100vh) * 2px);
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+/* La última parada sin clip no tiene tramo que recorrer: una pantalla y media
+   bastan para leerla, y evita una pantalla y media de scroll con la imagen
+   quieta. */
+.world-stop--compact {
+  min-height: calc(var(--world-vh, 100vh) * 1.5px);
+}
+
+.world-stop__body {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  width: 100%;
+  max-width: 672px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 128px 16px 48px;
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .world-stop__body {
+    padding-inline: 48px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .world-stop__body {
+    max-width: 768px;
+    padding-bottom: 64px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .world-stop__body {
+    max-width: 896px;
+    padding-inline: 80px;
+  }
+}
+
+/* Cada bloque de la parada entra escalonado cuando su parada es la actual. */
+.world.is-world .world-stop__body > * {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 700ms var(--ease-fluid),
+    transform 700ms var(--ease-fluid);
+}
+
+.world.is-world .world-stop.is-current .world-stop__body > *,
+.world.is-world .world-stop__body:focus-within > * {
+  opacity: 1;
+  transform: none;
+  transition-duration: 1000ms;
+}
+
+.world.is-world .world-stop.is-current .world-stop__body > :nth-child(2) {
+  transition-delay: 60ms;
+}
+.world.is-world .world-stop.is-current .world-stop__body > :nth-child(3) {
+  transition-delay: 120ms;
+}
+.world.is-world .world-stop.is-current .world-stop__body > :nth-child(4) {
+  transition-delay: 180ms;
+}
+.world.is-world .world-stop.is-current .world-stop__body > :nth-child(5) {
+  transition-delay: 240ms;
+}
+.world.is-world .world-stop.is-current .world-stop__body > :nth-child(6) {
+  transition-delay: 300ms;
+}
+.world.is-world .world-stop.is-current .world-stop__body > :nth-child(7) {
+  transition-delay: 360ms;
+}
+.world.is-world .world-stop.is-current .world-stop__body > :nth-child(8) {
+  transition-delay: 420ms;
+}
+
+/* Fuera de la parada activa el texto no intercepta clics. */
+.world.is-world .world-stop:not(.is-current) .world-stop__body:not(:focus-within) {
+  pointer-events: none;
+}
+
+.world-stop__counter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgb(237 237 237 / 60%);
+  font-size: var(--text-xs);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.world-stop__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background-color: var(--color-accent);
+}
+
+.world-stop__eyebrow {
+  margin-top: 16px;
+  color: var(--color-accent);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.world-stop__title {
+  margin: 16px 0 0;
+}
+
+.world-stop__kicker {
+  display: block;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.world-stop__brand {
+  display: block;
+  max-width: 680px;
+  margin-top: 16px;
+  padding-bottom: 8px;
+  color: var(--color-foreground);
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-weight: 600;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.world-stop__heading {
+  max-width: 640px;
+  margin-top: 16px;
+  color: var(--color-foreground);
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  font-weight: 600;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.world-stop__copy {
+  max-width: 448px;
+  margin-top: 16px;
+  color: rgb(237 237 237 / 80%);
+  font-size: var(--text-base);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+@media (min-width: 1024px) {
+  .world-stop__copy {
+    font-size: var(--text-lg);
+  }
+}
+
+.world-stop__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.world-stop__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.world-pill {
+  border-radius: 999px;
+  padding: 4px 12px;
+  background-color: rgb(15 15 17 / 78%);
+  color: rgb(237 237 237 / 80%);
+  font-size: var(--text-xs);
+  box-shadow: inset 0 0 0 1px rgb(237 237 237 / 20%);
+}
+
+/* ---------------------------------------------------------------------------
+   Movimiento reducido: sin clips, sin escalados y sin entrada escalonada.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .world.is-world .world-stop__body > * {
+    transform: none;
+    transition: opacity 400ms var(--ease-fluid);
+  }
+
+  .world-hint__line::after {
+    animation: none;
+  }
+}

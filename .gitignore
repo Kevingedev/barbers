@@ -1,0 +1,22 @@
+.next
+node_modules
+out
+dist
+.env
+.env*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vercel
+
+# Artefactos de compilación de TypeScript: se regeneran solos en cada build.
+*.tsbuildinfo
+
+# Los PNG originales de `ai_img/` son material de trabajo: pesan 4,7 MB y no los
+# sirve el sitio, solo se usan para generar el clip y los pósters.
+ai_img/
+
+# OJO: `public/video/` y `public/world/` SÍ deben subirse al repositorio.
+# El paseo lee el clip y los pósters de ahí, y Vercel despliega desde el repo:
+# si se ignoraran, el paseo se publicaría sin vídeo ni imágenes.
