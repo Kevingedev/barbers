@@ -27,7 +27,7 @@ create table if not exists public.barbers (
   active boolean not null default true,
   sort_order integer not null default 0,
   created_at timestamptz not null default now(),
-  updated_at timestamust not null default now()
+  updated_at timestamptz not null default now()
 );
 
 -- Citas. Incluye las que entran por la web y las que crea el barbero a mano
@@ -47,7 +47,7 @@ create table if not exists public.appointments (
   notes text not null default '',
   source text not null default 'web' check (source in ('web', 'manual')),
   created_at timestamptz not null default now(),
-  updated_at timestamust not null default now()
+  updated_at timestamptz not null default now()
 );
 
 -- Alguien llama a la misma hora y otro barbero la acepta. La regla impide
@@ -65,7 +65,7 @@ create table if not exists public.site_settings (
   id uuid primary key default gen_random_uuid(),
   booking_enabled boolean not null default true,
   created_at timestamptz not null default now(),
-  updated_at timestamust not null default now()
+  updated_at timestamptz not null default now()
 );
 
 insert into public.site_settings (booking_enabled)

@@ -95,6 +95,10 @@ create policy "staff lee la lista"
 -- Añadir o quitar gente de la lista se hace desde el panel de Supabase, no
 -- desde la web: a propósito no hay ninguna política de escritura.
 
+-- ---------------------------------------------------------------- LISTA BLANCA
+-- CAMBIA ESTE CORREO POR EL TUYO ANTES DE EJECUTAR LA MIGRACIÓN.
+-- Con esta fila nada más, no se puede entrar al panel: un usuario de Supabase
+-- Auth que no esté en esta tabla se queda en la puerta.
 insert into public.staff_emails (email)
 select 'TU-CORREO@GMAIL.COM'
 where not exists (select 1 from public.staff_emails);
