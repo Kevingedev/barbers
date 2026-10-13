@@ -47,14 +47,18 @@ export function MapboxMap({ latitude, longitude, zoom = 14 }: MapboxMapProps) {
         // Con attributionControl en su sitio, los + y − irían abajo a la derecha
         // y taparían el marcador; el control se añade justo debajo.
         attributionControl: false,
-        // El mapa es informativo, no interactivo: nadie va a arrastrarlo ni a
-        // hacer zoom. Con `interactive: false` el mapa no trae los manejadores de
-        // puntero y, sobre todo, no pide teselas de las zonas vecinas al mover el
-        // cursor por encima. Medido, el mapa se llevaba 4,7 MB de la carga.
-        interactive: false
+        // El mapa se puede arrastrar y ampliar. Antes llevaba `interactive: false`
+        // para que no pidiera teselas de las zonas vecinas al pasar el cursor,
+        // pero eso también quitaba los manejadores de puntero y el mapa quedaba
+        // muerto. El ahorro se consigue en otro sitio: con el IntersectionObserver
+        // de abajo el mapa no se construye hasta que está cerca de la vista, y
+        // con `cooperativeGestures` la rueda sigue desplazando la página salvo
+        // que el visitante esté sobre el mapa.
+        cooperativeGestures: true
       });
 
       map.addControl(new mapboxgl.AttributionControl({ compact: true }));
+      map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-left");
 
       map.on("load", () => {
         // Marcador propio: un punto y, al lado, el nombre de la peluquería. El

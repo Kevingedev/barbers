@@ -474,6 +474,50 @@ button {
   color: var(--color-background);
 }
 
+/* Botones de zoom del mapa: los de Mapbox vienen con fondo blanco, que rompe
+   el tema oscuro. */
+.mapboxgl-ctrl-group {
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgb(197 168 128 / 24%);
+}
+
+.mapboxgl-ctrl-group button {
+  background-color: #16161a;
+}
+
+.mapboxgl-ctrl-group button + button {
+  border-top: 1px solid rgb(197 168 128 / 24%);
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background-color: #1e1e24;
+}
+
+.mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+  filter: invert(1) opacity(0.7);
+}
+
+.mapboxgl-ctrl-group button:hover .mapboxgl-ctrl-icon {
+  filter: invert(1) opacity(1);
+}
+
+/* Aviso de gestos cooperativos: la rueda desplaza la página salvo que el cursor
+   esté sobre el mapa. */
+.mapboxgl-ctrl-cooperative-gesture-screengrab,
+.mapboxgl-ctrl-cooperative-gesture-active,
+.mapboxgl-ctrl-cooperative-gesture {
+  background: rgb(15 15 17 / 85%);
+  color: var(--color-foreground);
+  font-size: 0.75rem;
+}
+
+.mapboxgl-ctrl-cooperative-gesture-active {
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--color-accent);
+  padding: 6px 10px;
+}
+
 /* Marcador propio: punto del color de acento con el nombre al lado. */
 .venue-pin {
   display: flex;
