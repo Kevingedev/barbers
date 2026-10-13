@@ -39,22 +39,32 @@ En `full`:
 
 ### 1. Crear el proyecto en Supabase
 
-https://supabase.com/dashboard → New project. Anota:
+https://supabase.com/dashboard → New project. Después, en **Project Settings →
+API**, te hacen falta solo dos cosas:
 
 ```text
-Project URL       → SUPABASE_URL
-anon public key   → SUPABASE_ANON_KEY
-service_role key  → SUPABASE_SERVICE_ROLE_KEY  (solo para migrar, nunca en el navegador)
+Project URL  → SUPABASE_URL
+anon key     → SUPABASE_ANON_KEY   (la que pone "public" y es segura para el navegador)
 ```
+
+**No necesitas la clave `service_role`.** Esta la marca como `secret` porque se
+salta la seguridad a nivel de fila, y este proyecto no la usa: todas las
+escrituras del panel pasan por la sesión del usuario y por las políticas de la
+base de datos. Cuanto menos claves secretas por ahí, mejor.
+
+Si tu panel de Supabase tiene una pestaña **"Publishable API keys"**, úsala: es
+la versión nueva y recomendada de la anon. Se pega en el mismo sitio
+(`SUPABASE_ANON_KEY`).
 
 ### 2. Poner las variables en Vercel
 
 ```text
-SUPABASE_URL                 https://xxxx.supabase.co
-SUPABASE_ANON_KEY            eyJhbGciOi...
-SUPABASE_SERVICE_ROLE_KEY    eyJhbGciOi...
-NEXT_PUBLIC_SITE_MODE        full
+SUPABASE_URL              https://xxxx.supabase.co
+SUPABASE_ANON_KEY         eyJhbGciOi...
+NEXT_PUBLIC_SITE_MODE     full
 ```
+
+Tres variables y ninguna más. Si te pide algo más, es que no lo necesita.
 
 En local, en `.env.local`.
 
@@ -76,6 +86,9 @@ supabase login
 supabase link --project-ref <tu-ref>
 supabase db push
 ```
+
+La CLI pide tu contraseña de Supabase al entrar, no la `service_role` del
+proyecto. Eso es normal: usa su propio token de acceso personal.
 
 O a mano: SQL Editor → New query → pegar el contenido de cada fichero en orden.
 

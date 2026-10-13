@@ -44,22 +44,24 @@ export const env = publicEnvSchema.parse({
 
 /**
  * Variables de servidor. No llevan `NEXT_PUBLIC_`, así que nunca viajan al
- * navegador. Se validan aparte y a puerta cerrada: si faltan y el modo es
- * `full`, el error sale en el servidor con un mensaje claro, no un 500 sordo.
+ * navegador. Se validan aparte y a puerta cerrada: si faltan, `getServerEnv()`
+ * devuelve `null` y el sitio cae en modo estático en vez de romperse.
+ *
+ * Solo hacen falta dos. NO se pide la clave `service_role`: esa se salta la
+ * seguridad de las filas y no se usa en ninguna parte de este proyecto. Todas
+ * las escrituras del panel pasan por la sesión del usuario y las políticas de
+ * la base de datos.
  */
 const serverEnvSchema = z.object({
   SUPABASE_URL: z.preprocess(emptyToUndefined, z.string().url()),
-  SUPABASE_ANON_KEY: z.preprocess(emptyToUndefined, z.string().min(1)),
-  /** Solo para migrar datos o scripts sueltos. Nunca en el navegador. */
-  SUPABASE_SERVICE_ROLE_KEY: z.preprocess(emptyToUndefined, z.string().min(1))
+  SUPABASE_ANON_KEY: z.preprocess(emptyToUndefined, z.string().min(1))
 });
 
 /** Instancia válida, o `null` si faltan las variables. Nunca lanza. */
 export function getServerEnv() {
   const parsed = serverEnvSchema.safeParse({
     SUPABASE_URL: process.env.SUPABASE_URL,
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY
   });
 
   return parsed.success ? parsed.data : null;
