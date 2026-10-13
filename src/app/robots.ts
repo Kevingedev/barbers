@@ -10,7 +10,15 @@ export default function robots(): MetadataRoute.Robots {
   }
 
   return {
-    rules: { userAgent: "*", allow: "/" },
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        // El panel nunca se indexa. Que quede además con `noindex` en su
+        // cabecera, pero conviene que ni siquiera se ofrezca en el sitemap.
+        disallow: ["/back", "/back/"]
+      }
+    ],
     sitemap: `${SITE_URL}/sitemap.xml`
   };
 }

@@ -1,8 +1,6 @@
-import { getSiteSettings } from "@/features/settings/lib/getSiteSettings";
+import { getSiteSettings, listBarbers, listServices } from "@/lib/data";
 import { getMessages } from "@/messages";
-import { SERVICES } from "@/features/services/data/services";
 import { ServiceCard } from "@/features/services/components/ServiceCard";
-import { BARBERS } from "@/features/barbers/data/barbers";
 import { BarberCard } from "@/features/barbers/components/BarberCard";
 import { ContactSection } from "@/features/contact/components/ContactSection";
 import { Reveal } from "@/components/animations/Reveal";
@@ -14,12 +12,19 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { VENUE } from "@/config/site";
 
 export default async function HomePage() {
-  const settings = await getSiteSettings();
+  const [settings, services, barbers] = await Promise.all([
+    getSiteSettings(),
+    // Solo los activos: un servicio retirado no sale en la web, pero se sigue
+    // viendo en el panel.
+    listServices(true),
+    listBarbers(true)
+  ]);
+  const bookingEnabled = settings.bookingEnabled;
   const t = getMessages();
 
   return (
     <main className="home-page">
-      <ScrollWorld bookingEnabled={settings.booking_enabled} />
+      <ScrollWorld bookingEnabled={bookingEnabled} />
 
       <section className="section section--services" id="servicios">
         <div className="container">
@@ -33,7 +38,7 @@ export default async function HomePage() {
 
           <Reveal>
             <div className="services-grid">
-              {SERVICES.map((service) => (
+              {services.map((service) => (
                 <ServiceCard key={service.id} service={service} />
               ))}
             </div>
@@ -90,7 +95,7 @@ export default async function HomePage() {
           {/* Entrada escalonada: con una sola tarjeta no se aprecia el efecto,
               pero el marcado ya queda listo para cuando haya más de una. */}
           <Secuencial className="barbers-grid">
-            {BARBERS.map((barber) => (
+            {barbers.map((barber) => (
               <BarberCard key={barber.id} barber={barber} />
             ))}
           </Secuencial>

@@ -1370,3 +1370,458 @@ button {
     gap: 6px;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Panel de control (/back)
+
+   Mismo sistema visual que el resto de la web, pero con densidad de panel:
+   menos aire y bordes más marcados. Usa los mismos tokens, no los suyos.
+--------------------------------------------------------------------------- */
+.back {
+  min-height: 100vh;
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+.back__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 24px;
+}
+
+.back__brand {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.back__header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.back__link {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.back__link:hover {
+  color: var(--color-accent);
+}
+
+.back__logout {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  padding: 6px 14px;
+  color: var(--color-foreground);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.back__logout:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.back__nav {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 24px;
+}
+
+.back__nav-link {
+  border-bottom: 2px solid transparent;
+  padding: 14px 4px;
+  margin-right: 20px;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+
+.back__nav-link:hover {
+  color: var(--color-foreground);
+}
+
+.back__nav-link[aria-current="page"] {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.back__main {
+  width: min(960px, 100% - 48px);
+  margin: 0 auto;
+  padding: 40px 0 96px;
+}
+
+.back-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 56px;
+}
+
+.back-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: 28px;
+}
+
+.back-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 8px;
+  color: var(--color-foreground);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.back-copy {
+  max-width: 62ch;
+  margin: 0 0 20px;
+  color: var(--color-muted);
+  line-height: 1.7;
+}
+
+.back-empty,
+.back-hint {
+  color: var(--color-muted);
+}
+
+.back-alert {
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius);
+  background: rgb(209 106 95 / 8%);
+  padding: 12px 16px;
+  color: var(--color-error);
+}
+
+.back-ok {
+  color: var(--color-accent);
+}
+
+.back-badge {
+  border-radius: 999px;
+  background: var(--color-accent);
+  padding: 3px 10px;
+  color: var(--color-background);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.back-badge--muted {
+  background: var(--color-border);
+  color: var(--color-foreground);
+  margin-left: 8px;
+}
+
+/* Días y citas */
+.back-day + .back-day {
+  margin-top: 36px;
+}
+
+.back-day__title {
+  margin: 0 0 14px;
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.back-appointments__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.back-appointment {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: 18px 20px;
+}
+
+.back-appointment--pending {
+  border-left-color: #d9a441;
+}
+
+.back-appointment--confirmed {
+  border-left-color: var(--color-accent);
+}
+
+.back-appointment--done {
+  opacity: 0.55;
+}
+
+.back-appointment--cancelled {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.back-appointment__time {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.back-appointment__duration {
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.back-appointment__customer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.back-appointment__phone {
+  color: var(--color-accent);
+  font-weight: 400;
+}
+
+.back-appointment__service,
+.back-appointment__notes {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.88rem;
+}
+
+.back-appointment__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-status {
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: var(--color-border);
+  color: var(--color-foreground);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.back-status--pending {
+  background: rgb(217 164 65 / 18%);
+  color: #d9a441;
+}
+
+.back-status--confirmed {
+  background: rgb(197 168 128 / 18%);
+  color: var(--color-accent);
+}
+
+.back-button {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  padding: 8px 14px;
+  color: var(--color-foreground);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
+}
+
+.back-button:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.back-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.back-button--quiet {
+  color: var(--color-muted);
+}
+
+.back-button--danger:hover:not(:disabled) {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+/* Formularios */
+.back-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.back-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 16px;
+}
+
+.back-form__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.back-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-foreground);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.back-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.back-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+
+.back-list__item.is-off {
+  opacity: 0.5;
+}
+
+.back-list__title {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.back-list__meta {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.88rem;
+}
+
+.back-list__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Login */
+.back-login {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+.back-login__card {
+  width: min(420px, 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: 40px 32px;
+}
+
+.back-login__title {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.back-login__copy {
+  margin: 0 0 28px;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 720px) {
+  .back__main {
+    width: min(960px, 100% - 32px);
+  }
+
+  .back-appointment {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .back__nav {
+    overflow-x: auto;
+  }
+}
+
+/* Resultado de pedir cita: solo aparece en modo completo, con backend. */
+.booking-done {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: 28px;
+}
+
+.booking-done__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.booking-done__copy {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.booking-done .back-alert {
+  margin-top: 24px;
+}
+
+.booking-done .back-alert p {
+  margin: 0 0 8px;
+}
+
+.booking-done .back-hint {
+  margin: 0 0 14px;
+  font-size: 0.88rem;
+}

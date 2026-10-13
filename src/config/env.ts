@@ -18,11 +18,49 @@ const emptyToUndefined = (value: unknown) => {
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
   NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER: z.preprocess(emptyToUndefined, z.string().optional()),
-  NEXT_PUBLIC_MAPBOX_TOKEN: z.preprocess(emptyToUndefined, z.string().optional())
+  NEXT_PUBLIC_MAPBOX_TOKEN: z.preprocess(emptyToUndefined, z.string().optional()),
+  /**
+   * Modo del proyecto:
+   * - `static`: web sin backend. Los servicios y el equipo salen de ficheros
+   *   locales, no hay citas guardadas y `/back` no existe.
+   * - `full`: con Supabase. Los datos salen de la base de datos, `/back` existe
+   *   y las citas se registran.
+   *
+   * Es lo que pediste: que el cliente elija de una vez si quiere solo la web o
+   * la web con control de citas. Sin esto, cada despliegue adivina.
+   *
+   * Si no se define, se deduce: si hay credenciales de Supabase, `full`; si no,
+   * `static`. Así un despliegue nuevo no rompe por no tener la variable puesta.
+   */
+  NEXT_PUBLIC_SITE_MODE: z.preprocess(emptyToUndefined, z.enum(["static", "full"]).optional())
 });
 
 export const env = publicEnvSchema.parse({
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER: process.env.NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER,
-  NEXT_PUBLIC_MAPBOX_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_TOKEN
+  NEXT_PUBLIC_MAPBOX_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_TOKEN,
+  NEXT_PUBLIC_SITE_MODE: process.env.NEXT_PUBLIC_SITE_MODE
 });
+
+/**
+ * Variables de servidor. No llevan `NEXT_PUBLIC_`, así que nunca viajan al
+ * navegador. Se validan aparte y a puerta cerrada: si faltan y el modo es
+ * `full`, el error sale en el servidor con un mensaje claro, no un 500 sordo.
+ */
+const serverEnvSchema = z.object({
+  SUPABASE_URL: z.preprocess(emptyToUndefined, z.string().url()),
+  SUPABASE_ANON_KEY: z.preprocess(emptyToUndefined, z.string().min(1)),
+  /** Solo para migrar datos o scripts sueltos. Nunca en el navegador. */
+  SUPABASE_SERVICE_ROLE_KEY: z.preprocess(emptyToUndefined, z.string().min(1))
+});
+
+/** Instancia válida, o `null` si faltan las variables. Nunca lanza. */
+export function getServerEnv() {
+  const parsed = serverEnvSchema.safeParse({
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY
+  });
+
+  return parsed.success ? parsed.data : null;
+}

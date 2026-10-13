@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { getMessages } from "@/messages";
 import { SITE_NAME, WHATSAPP_PHONE } from "@/config/site";
-import { getSiteSettings } from "@/features/settings/lib/getSiteSettings";
+import { getSiteSettings } from "@/lib/data";
 import { generateWhatsAppUrl } from "@/lib/utils/generateWhatsAppUrl";
 
 const NAV_ITEMS = [
@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 
 export async function Navbar() {
   const t = getMessages();
-  const { booking_enabled: bookingEnabled } = await getSiteSettings();
+  const { bookingEnabled } = await getSiteSettings();
 
   const whatsappUrl = generateWhatsAppUrl({
     phone: WHATSAPP_PHONE,
