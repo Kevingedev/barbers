@@ -21,16 +21,40 @@ subir: el paseo los lee de `public/`.
 Settings → Environment Variables. Con estos valores:
 
 ```text
-NEXT_PUBLIC_SITE_URL              https://tu-dominio.com
-NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER 34600000000
 NEXT_PUBLIC_MAPBOX_TOKEN          pk.eyJ1...
-SUPABASE_URL                      (vacío por ahora)
-SUPABASE_ANON_KEY                 (vacío por ahora)
+NEXT_PUBLIC_WHATSAPP_PHONE_NUMBER 34600000000
 ```
 
-- `NEXT_PUBLIC_SITE_URL`: **obligatoria**. Sin ella los metadatos de Open Graph
-  y el sitemap apuntan a `localhost`. Si no la pones, el sitio detecta que está
-  en Vercel y usa el dominio del proyecto, pero mejor ponerla explícitamente.
+Y **`NEXT_PUBLIC_SITE_URL` déjala vacía o no la crees**.
+
+### El dominio no hace falta ponerlo
+
+La URL del sitio se resuelve sola, en este orden:
+
+1. `NEXT_PUBLIC_SITE_URL`, si la defines.
+2. `VERCEL_PROJECT_PRODUCTION_URL`, que Vercel inyecta: el dominio del
+   proyecto (`barbers.vercel.app`).
+3. `VERCEL_URL`, también inyectada.
+4. Si no hay ninguna, `localhost`, y el sitio **se auto-bloquea**: el
+   `robots.txt` devuelve `Disallow: /` y el sitemap sale vacío, para que no se
+   indexe con la URL equivocada.
+
+Es decir: Vercel genera el dominio al desplegar y el sitio lo usa solo. Puedes
+dejar `NEXT_PUBLIC_SITE_URL` vacía sin miedo.
+
+### Cuándo sí rellenarla
+
+- **Si más adelante compras un dominio** (`.es`, `.com`): añádelo a Vercel en
+  Settings → Domains y pon `NEXT_PUBLIC_SITE_URL=https://tudominio.com`. Si no,
+  el canonical y el sitemap seguirán apuntando a `barbers.vercel.app` y
+ buscadores indexarían dos versiones distintas del mismo sitio.
+- **Si te da igual el SEO**: déjala vacía para siempre.
+
+Una variable vacía **no rompe el build**. Está comprobado: el validador
+descarta las cadenas vacías en `src/config/env.ts`.
+
+### El resto
+
 - `NEXT_PUBLIC_MAPBOX_TOKEN`: pública por diseño (`pk.`). Aun así, restríngela
   por dominio en Mapbox: Settings → Tokens → Public tokens → Restrict → Allowed
   URLs con `https://api.mapbox.com` y `https://events.mapbox.com`.
