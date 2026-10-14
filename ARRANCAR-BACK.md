@@ -76,3 +76,39 @@ Sin `service_role`. No hace falta.
 | "Correo o contraseña incorrectos" | El usuario no existe en Authentication, o no está en `staff_emails` |
 | Entra y no se ven servicios | Aún no has copiado los servicios desde Ajustes |
 | "No se pudo conectar para guardar la cita" | La tabla `appointments` no existe: faltan migraciones |
+---
+
+## `/back` da 404 en Vercel (pero funciona en local)
+
+**Es lo que pasa si no copiaste las variables a Vercel.** No es un fallo del
+código.
+
+El motivo: `.env.local` está en el `.gitignore`, así que **no se sube a GitHub**,
+y Vercel despliega desde GitHub. En local lees `.env.local`; en producción solo
+existen las variables que hayas puesto en el panel de Vercel.
+
+Pégalas en **Vercel → el proyecto → Settings → Environment Variables**:
+
+| Nombre | Valor |
+| :-- | :-- |
+| `SUPABASE_URL` | `https://yfyhsubndkfzgywxljun.supabase.co` |
+| `SUPABASE_ANON_KEY` | la clave `sb_publishable_...` |
+| `NEXT_PUBLIC_SITE_MODE` | `full` |
+
+Las tres van en los tres entornos (Production, Preview y Development). Pulsa
+**Deployments → redeploy** después de añadirlas, porque Vercel no las lee en
+tiempo real: hacen falta las variables **antes** de la compilación.
+
+Ojo con esto, que es la trampa más fácil: `NEXT_PUBLIC_*` se sustituye por su
+valor al compilar. Si añades la variable **después** del deploy, hay que
+recompilar; con solo recargar la página no vale.
+
+### Cómo comprobarlo rápido
+
+```sh
+# Debe imprimir la URL de tu proyecto. Si dice localhost, falta SUPABASE_URL.
+curl -s https://barbers-sable.vercel.app/robots.txt
+```
+
+Si responde `Disallow: /`, significa que Vercel no detectó dominio y tampoco
+tiene las variables de Supabase.

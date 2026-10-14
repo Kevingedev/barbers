@@ -35,3 +35,26 @@ export function isFullMode(): boolean {
 export function isBackEnabled(): boolean {
   return isFullMode();
 }
+
+/**
+ * Por qué el panel no está disponible, o `null` si lo está.
+ *
+ * Existe porque el 404 sin explicación es el fallo más difícil de diagnosticar
+ * de todo el panel. En Vercel casi siempre es por variables que faltan, y sin
+ * este aviso no hay forma de saberlo desde fuera.
+ */
+export function getBackMisconfiguration(): string | null {
+  if (isFullMode()) return null;
+
+  const serverEnv = getServerEnv();
+  const faltan: string[] = [];
+
+  if (!serverEnv?.SUPABASE_URL) faltan.push("SUPABASE_URL");
+  if (!serverEnv?.SUPABASE_ANON_KEY) faltan.push("SUPABASE_ANON_KEY");
+
+  if (faltan.length) {
+    return `faltan ${faltan.join(" y ")} en las variables de entorno. El panel necesita Supabase.`;
+  }
+
+  return "NEXT_PUBLIC_SITE_MODE está en 'static'. Ponlo en 'full' para activar el panel.";
+}
