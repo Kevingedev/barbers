@@ -100,5 +100,5 @@ create policy "staff lee la lista"
 -- Con esta fila nada más, no se puede entrar al panel: un usuario de Supabase
 -- Auth que no esté en esta tabla se queda en la puerta.
 insert into public.staff_emails (email)
-select 'TU-CORREO@GMAIL.COM'
+select 'kevinswag853@gmail.com'
 where not exists (select 1 from public.staff_emails);
