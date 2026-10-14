@@ -2,9 +2,9 @@
 
 import { useActionState, useEffect } from "react";
 
-import { createManualAppointment } from "@/app/back/actions";
+import { createManualAppointment } from "@/app/(back)/back/actions";
 
-import type { ManualAppointmentState } from "@/app/back/actions";
+import type { ManualAppointmentState } from "@/app/(back)/back/actions";
 import type { BarberRow, ServiceRow } from "@/lib/domain/types";
 
 const initialState: ManualAppointmentState = {};

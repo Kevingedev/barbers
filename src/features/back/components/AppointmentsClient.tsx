@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { deleteAction, setStatusAction } from "@/app/back/actions";
+import { deleteAction, setStatusAction } from "@/app/(back)/back/actions";
 import { AppointmentsList } from "@/features/back/components/AppointmentsList";
 
 import type { AppointmentDetail, AppointmentStatus } from "@/lib/domain/types";

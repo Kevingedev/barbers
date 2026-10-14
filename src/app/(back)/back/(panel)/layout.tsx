@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { isBackEnabled } from "@/config/siteMode";
 import { getStaffSession } from "@/lib/supabase/session";
-import { logout } from "@/app/back/login/actions";
+import { logout } from "@/app/(back)/back/login/actions";
 
 /**
  * Panel de control: citas, servicios y ajustes.

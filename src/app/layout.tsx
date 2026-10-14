@@ -3,9 +3,6 @@ import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
 
 import "@/styles/globals.css";
 import { SITE_NAME, SITE_URL } from "@/config/site";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { getMessages } from "@/messages";
 
 const displayFont = Cormorant_Garamond({
@@ -20,11 +17,6 @@ const bodyFont = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"]
 });
 
-// Sin datos estructurados (JSON-LD) a propósito: el negocio se llama "Ejemplo"
-// y son datos de muestra. Publicar un schema.org/HairSalon con nombre, dirección
-// y horario inventados hace que Google indexe información falsa. Cuando haya
-// nombre, dirección y horario reales, se recupera en
-// `src/features/visit/lib/hairSalonSchema.ts`.
 export const metadata: Metadata = {
   title: {
     default: SITE_NAME,
@@ -54,15 +46,18 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true }
 };
 
+/**
+ * Layout raíz: solo el documento.
+ *
+ * La navbar y el pie NO están aquí, sino en el layout de `(web)`. Si estuvieran
+ * en la raíz, el panel los heredaría: la navbar `fixed` taparía la cabecera del
+ * panel y sus enlaces a `#contacto` llevarían al visitante a una sección de la
+ * web pública desde dentro del panel.
+ */
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className={`${displayFont.variable} ${bodyFont.variable}`}>
-      <body>
-        <SmoothScroll />
-        <Navbar />
-        {children}
-        <Footer />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

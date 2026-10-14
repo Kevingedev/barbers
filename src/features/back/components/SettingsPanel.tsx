@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 
-import { seedServicesAction, toggleBookingAction } from "@/app/back/actions";
+import { seedServicesAction, toggleBookingAction } from "@/app/(back)/back/actions";
 
 /**
  * Interruptor de reservas.

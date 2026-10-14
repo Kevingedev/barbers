@@ -1,25 +1,47 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState, useTransition } from "react";
 
-import { deleteServiceAction, saveServiceAction } from "@/app/back/actions";
+import { deleteServiceAction, saveServiceAction } from "@/app/(back)/back/actions";
+import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/features/back/components/ConfirmDialog";
 
-import type { ServiceFormState } from "@/app/back/actions";
+import type { ServiceFormState } from "@/app/(back)/back/actions";
 import type { ServiceRow } from "@/lib/domain/types";
 
 const initialState: ServiceFormState = {};
 
 /**
- * Alta y edición de servicios.
+ * Servicios: lista con botones, y los formularios en ventanas modales.
  *
- * Borrar está limitado a los que no tienen citas: los que las tienen se ocultan
- * con la casilla "activo", que es lo que se usa en una peluería de verdad. Si un
- * servicio tiene historia, desaparece del precio pero no de los registros.
+ * Los formularios NO están en la página: antes estaban siempre visibles y al
+ * pulsar "Editar" no se rellenaban con los datos del servicio, porque el
+ * formulario no se volvía a montar. Aquí cada modal nace con sus valores.
  */
 export function ServicesEditor({ services }: { services: ServiceRow[] }) {
-  const [editing, setEditing] = useState<ServiceRow | null>(null);
-  const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  const [editando, setEditando] = useState<ServiceRow | null>(null);
+  const [creando, setCreando] = useState(false);
+  const [borrando, setBorrando] = useState<ServiceRow | null>(null);
+
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  async function confirmarBorrado() {
+    if (!borrando) return;
+    const objetivo = borrando;
+    setBorrando(null);
+
+    startTransition(async () => {
+      const result = await deleteServiceAction(objetivo.id);
+      if (!result.ok) setDeleteError(result.error);
+      else {
+        setDeleteError(null);
+        router.refresh();
+      }
+    });
+  }
 
   return (
     <div className="back-stack">
@@ -30,7 +52,9 @@ export function ServicesEditor({ services }: { services: ServiceRow[] }) {
               <div>
                 <p className="back-list__title">
                   {service.name}
-                  {!service.active ? <span className="back-badge back-badge--muted">Oculto</span> : null}
+                  {!service.active ? (
+                    <span className="back-badge back-badge--muted">Oculto</span>
+                  ) : null}
                 </p>
                 <p className="back-list__meta">
                   {service.price} € · {service.durationMinutes} min
@@ -41,7 +65,10 @@ export function ServicesEditor({ services }: { services: ServiceRow[] }) {
                 <button
                   className="back-button"
                   type="button"
-                  onClick={() => setEditing(service)}
+                  onClick={() => {
+                    setDeleteError(null);
+                    setEditando(service);
+                  }}
                 >
                   Editar
                 </button>
@@ -50,11 +77,8 @@ export function ServicesEditor({ services }: { services: ServiceRow[] }) {
                   type="button"
                   disabled={pending}
                   onClick={() => {
-                    if (!window.confirm(`¿Borrar "${service.name}"?`)) return;
-                    startTransition(async () => {
-                      const result = await deleteServiceAction(service.id);
-                      setDeleteError(result.ok ? null : result.error);
-                    });
+                    setDeleteError(null);
+                    setBorrando(service);
                   }}
                 >
                   Borrar
@@ -69,22 +93,70 @@ export function ServicesEditor({ services }: { services: ServiceRow[] }) {
             {deleteError}
           </p>
         ) : null}
+
+        <button className="primary-button back-nuevo" type="button" onClick={() => setCreando(true)}>
+          Nuevo servicio
+        </button>
       </section>
 
-      <ServiceForm key={editing?.id ?? "new"} editing={editing} onDone={() => setEditing(null)} />
+      {/* Cada modal tiene su propia `key`: al cambiar de servicio a otro, React
+          lo remonta y el formulario se rellena con los valores nuevos. */}
+      <ServiceFormModal
+        key={editando?.id ?? "nuevo"}
+        open={creando || editando !== null}
+        servicio={editando}
+        onClose={() => {
+          setCreando(false);
+          setEditando(null);
+        }}
+      />
+
+      <ConfirmDialog
+        open={borrando !== null}
+        titulo={`Borrar "${borrando?.name ?? ""}"`}
+        descripcion="Esta acción no se puede deshacer. Si el servicio tiene citas, el borrado fallará: en ese caso desmarca la casilla de visible en lugar de borrarlo."
+        dangerLabel="Borrar"
+        onConfirm={confirmarBorrado}
+        onCancel={() => setBorrando(null)}
+      />
     </div>
   );
 }
 
-function ServiceForm({ editing, onDone }: { editing: ServiceRow | null; onDone: () => void }) {
+function ServiceFormModal({
+  open,
+  servicio,
+  onClose
+}: {
+  open: boolean;
+  servicio: ServiceRow | null;
+  onClose: () => void;
+}) {
+  const router = useRouter();
   const [state, formAction, pending] = useActionState(saveServiceAction, initialState);
 
-  return (
-    <section>
-      <h2 className="back-title">{editing ? `Editar: ${editing.name}` : "Nuevo servicio"}</h2>
+  // Al guardar bien, el modal se cierra solo. Antes se quedaba abierto con el
+  // mensaje de éxito y había que cerrarlo a mano.
+  useEffect(() => {
+    if (state.ok) {
+      onClose();
+      router.refresh();
+    }
+  }, [state.ok, onClose, router]);
 
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={servicio ? `Editar: ${servicio.name}` : "Nuevo servicio"}
+      description={
+        servicio
+          ? undefined
+          : "Los cambios salen en la web en cuanto se guarda."
+      }
+    >
       <form action={formAction} className="back-form">
-        {editing ? <input type="hidden" name="id" value={editing.id} /> : null}
+        {servicio ? <input type="hidden" name="id" value={servicio.id} /> : null}
 
         <div className="back-form__grid">
           <div className="field">
@@ -96,7 +168,7 @@ function ServiceForm({ editing, onDone }: { editing: ServiceRow | null; onDone: 
               id="name"
               name="name"
               required
-              defaultValue={editing?.name ?? ""}
+              defaultValue={servicio?.name ?? ""}
               placeholder="Corte clásico"
             />
           </div>
@@ -113,7 +185,7 @@ function ServiceForm({ editing, onDone }: { editing: ServiceRow | null; onDone: 
               step="0.50"
               min="0"
               required
-              defaultValue={editing?.price ?? ""}
+              defaultValue={servicio?.price ?? ""}
             />
           </div>
 
@@ -129,7 +201,7 @@ function ServiceForm({ editing, onDone }: { editing: ServiceRow | null; onDone: 
               min="5"
               step="5"
               required
-              defaultValue={editing?.durationMinutes ?? 30}
+              defaultValue={servicio?.durationMinutes ?? 30}
             />
           </div>
 
@@ -142,7 +214,7 @@ function ServiceForm({ editing, onDone }: { editing: ServiceRow | null; onDone: 
               id="sortOrder"
               name="sortOrder"
               type="number"
-              defaultValue={editing?.sortOrder ?? 0}
+              defaultValue={servicio?.sortOrder ?? 0}
             />
           </div>
         </div>
@@ -156,12 +228,12 @@ function ServiceForm({ editing, onDone }: { editing: ServiceRow | null; onDone: 
             id="description"
             name="description"
             rows={2}
-            defaultValue={editing?.description ?? ""}
+            defaultValue={servicio?.description ?? ""}
           />
         </div>
 
         <label className="back-checkbox">
-          <input type="checkbox" name="active" defaultChecked={editing?.active ?? true} />
+          <input type="checkbox" name="active" defaultChecked={servicio?.active ?? true} />
           <span>Visible en la web</span>
         </label>
 
@@ -172,16 +244,14 @@ function ServiceForm({ editing, onDone }: { editing: ServiceRow | null; onDone: 
         ) : null}
 
         <div className="back-form__actions">
+          <button className="back-button" type="button" onClick={onClose}>
+            Cancelar
+          </button>
           <button className="primary-button" type="submit" disabled={pending}>
             {pending ? "Guardando…" : "Guardar"}
           </button>
-          {editing ? (
-            <button className="back-button" type="button" onClick={onDone}>
-              Cancelar
-            </button>
-          ) : null}
         </div>
       </form>
-    </section>
+    </Modal>
   );
 }
