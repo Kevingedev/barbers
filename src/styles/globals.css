@@ -624,9 +624,11 @@ button {
    distingue del texto plano sin competir con la llamada principal. */
 .contact-directions {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   gap: 8px;
   margin-top: 12px;
+  padding-block: 10px;
   border-bottom: 1px solid rgb(197 168 128 / 40%);
   padding-bottom: 2px;
   color: var(--color-accent);
@@ -727,6 +729,9 @@ button {
 }
 
 .navbar__brand {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   color: var(--color-accent);
   font-family: var(--font-display);
   font-size: 1.35rem;
@@ -751,6 +756,9 @@ button {
 }
 
 .navbar__cta {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   padding: 10px 18px;
@@ -825,7 +833,12 @@ button {
   font-size: 0.92rem;
 }
 
+/* Los enlaces del pie tienen 18px de alto si se dejan: por debajo del mínimo
+   táctil de 44px, que en móvil hace fallar el toque con facilidad. El
+   `padding` amplía el área pulsable sin engordar el texto. */
 .footer__nav a {
+  display: inline-block;
+  padding-block: 13px;
   transition: color 0.15s ease;
 }
 
@@ -1167,9 +1180,155 @@ button {
   }
 }
 
+/* Botón de menú: tres líneas que rotan hasta formar una X. */
+/* Botón de menú de móvil. Oculto en escritorio, donde los enlaces ya están a
+   la vista. */
+.navbar__burger {
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: rgb(15 15 17 / 70%);
+  /* La navbar lleva `pointer-events: none` para que el scroll pase por debajo;
+     sus hijos interactivos tienen que reactivarlo o no se pueden pinchar. */
+  pointer-events: auto;
+  cursor: pointer;
+  transition: border-color var(--ease-fluid) 150ms ease;
+}
+
+/* Esta declaración va DESPUÉS de la de arriba a propósito. Al revés, el
+   `display: none` de la base ganaría por orden y el botón no se vería en el
+   móvil. */
 @media (max-width: 820px) {
+  /* En pantallas estrechas los enlaces en línea no caben. Se ocultan y su sitio
+     lo ocupa el botón de menú, que los muestra en un desplegable. */
   .navbar__links {
     display: none;
+  }
+
+  .navbar__burger {
+    display: grid;
+  }
+}
+
+.navbar__burger:hover {
+  border-color: var(--color-accent);
+}
+
+.navbar__burger-line {
+  position: absolute;
+  width: 18px;
+  height: 1.5px;
+  background-color: var(--color-foreground);
+  transition:
+    transform var(--ease-fluid) 300ms ease,
+    opacity var(--ease-fluid) 200ms ease;
+}
+
+.navbar__burger-line:nth-child(1) {
+  transform: translateY(-6px);
+}
+
+.navbar__burger-line:nth-child(3) {
+  transform: translateY(6px);
+}
+
+/* Morph a X: la del medio se desvanece, las otras dos rotan 45 grados. */
+.navbar__burger.is-open .navbar__burger-line:nth-child(1) {
+  transform: rotate(45deg);
+}
+
+.navbar__burger.is-open .navbar__burger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar__burger.is-open .navbar__burger-line:nth-child(3) {
+  transform: rotate(-45deg);
+}
+
+/* Fondo oscurecido detrás del menú. */
+.navbar__overlay {
+  position: fixed;
+  z-index: 48;
+  inset: 0;
+  background-color: rgb(15 15 17 / 72%);
+  animation: navbar-fade 200ms ease-out;
+}
+
+@keyframes navbar-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.navbar__drawer {
+  position: fixed;
+  z-index: 49;
+  top: 72px;
+  right: 16px;
+  left: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: #121216;
+  padding: 12px;
+  box-shadow: 0 20px 48px rgb(0 0 0 / 50%);
+  animation: navbar-drop 260ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes navbar-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+.navbar__drawer-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar__drawer-list li {
+  opacity: 0;
+  transform: translateY(-8px);
+  animation: navbar-item 320ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+@keyframes navbar-item {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.navbar__drawer a {
+  display: block;
+  border-radius: 6px;
+  padding: 14px 16px;
+  color: var(--color-foreground);
+  font-size: 1rem;
+  font-weight: 600;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.navbar__drawer a:hover {
+  background-color: rgb(237 237 237 / 6%);
+  color: var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar__overlay,
+  .navbar__drawer,
+  .navbar__drawer-list li,
+  .navbar__burger-line {
+    animation: none;
+    transition: none;
   }
 }
 
@@ -1333,10 +1492,16 @@ button {
 
 .reviews__dots {
   display: flex;
-  gap: 10px;
+  /* El area pulsable de cada punto mide 40px, asi que el hueco tiene que ser
+     menor que eso o los puntos se pisan entre si. */
+  gap: 2px;
 }
 
+/* El punto visible mide 8px, pero el área pulsable es de 40x40: por debajo del
+   mínimo táctil no hay forma acertar con el dedo. El tamaño sale de un pseudo
+   elemento para no ensuciar el `gap` del carrusel. */
 .reviews__dot {
+  position: relative;
   width: 8px;
   height: 8px;
   padding: 0;
@@ -1347,6 +1512,17 @@ button {
   transition:
     background-color 250ms var(--ease-fluid),
     transform 250ms var(--ease-fluid);
+}
+
+.reviews__dot::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
 }
 
 /* El punto activo crece, como el punto del raíl del paseo. */

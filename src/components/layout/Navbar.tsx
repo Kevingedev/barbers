@@ -4,6 +4,7 @@ import { getMessages } from "@/messages";
 import { SITE_NAME, WHATSAPP_PHONE } from "@/config/site";
 import { getSiteSettings } from "@/lib/data";
 import { generateWhatsAppUrl } from "@/lib/utils/generateWhatsAppUrl";
+import { MobileMenu } from "@/components/layout/MobileMenu";
 
 const NAV_ITEMS = [
   { href: "#servicios", key: "services" },
@@ -36,6 +37,10 @@ export async function Navbar() {
           </Link>
         ))}
       </nav>
+
+      {/* Por debajo de 820 px los enlaces de arriba se ocultan. Este menú es la
+          alternativa: sin él, en el móvil no había forma de navegar. */}
+      <MobileMenu items={NAV_ITEMS.map((item) => ({ href: item.href, label: t.nav[item.key] }))} />
 
       {bookingEnabled ? (
         <Link className="navbar__cta" href="/reservar">
